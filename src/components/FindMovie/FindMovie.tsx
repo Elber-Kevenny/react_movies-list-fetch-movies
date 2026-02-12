@@ -12,11 +12,15 @@ export const FindMovie: React.FC = () => {
   };
 
   const context = useContext(MovieContext);
+
+  if (!context) {
+    return null;
+  }
+
   const {
     showLoader,
     onQuery,
     query,
-    onFiltered,
     handleSubmit,
     movie,
     handleShowMoveList,
@@ -37,7 +41,6 @@ export const FindMovie: React.FC = () => {
         onSubmit={event => {
           event.preventDefault();
           handleSubmit(query);
-          onFiltered(query);
           handleShowMovieCard(true);
         }}
       >
