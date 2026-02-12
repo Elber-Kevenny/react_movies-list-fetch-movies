@@ -16,48 +16,65 @@ export const App = () => {
   const [showMovieList, setShowMovieList] = useState<boolean>(false);
   const [showLoader, setShowLoader] = useState<boolean>(false);
 
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   // console.log('query', query);
 
   const onQuery = (event: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(event.target.value);
+    setIsLoading(false);
   };
 
   // onfiltered pega o valor da query no form de findmovie e atualiza movie e movie é passado para moviecard
-  const onFiltered = (titleFilm: string) => {
+  const onFiltered = () => {
     setShowLoader(true);
-    setTimeout(() => {
-      const found = movies?.find(
-        (
-          f, // - .find → retorna um único objeto (ou undefined).
-        ) => {
-          const movieTitle = f.title.trim().toLowerCase();
-          const normalized = titleFilm.trim().toLowerCase();
-
-          return movieTitle.includes(normalized);
-        },
-      );
-
-      if (found) {
-        setMovie(found);
-        setShowLoader(false);
-      }
-    }, 1000);
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handlehaveOnTheList = () =>
+    setHaveOnTheList(movielist.some(m => m.imdbId === movie?.imdbId));
+
+  useEffect(() => {
+    handlehaveOnTheList();
+  }, [movie, handlehaveOnTheList()]);
+
+  const handleSubmit = (filmName: string) => {
+    if (!filmName) {
+      return;
+    }
+
+    getMovie(filmName) // getMovie precisa de query para econtrar o filme
+      .then(result => {
+        // then faz a busca, se o result(que é a busca) for bem sucedida(encontrou o filme) 'true'
+        if (result.Response === 'True') {
+          setIsLoading(false);
+          setShowLoader(true);
+          const foundFilm: Movie = {
+            title: result.Title,
+            description: result.Plot,
+            imdbUrl: `https://www.imdb.com/title/${result.imdbID}`,
+            imgUrl:
+              !result.Poster || result.Poster === 'N/A'
+                ? `https://via.placeholder.com/360x270.png?text=no%20preview`
+                : result.Poster,
+            imdbId: result.imdbID,
+          }; // atualiza o setMovies com o resultado da busca Search
+
+          setMovies([foundFilm]);
+          setMovie(foundFilm);
+          setShowLoader(false);
+        } else {
+          setMovies([]);
+          setShowLoader(false);
+          setIsLoading(true);
+        }
+      })
+      .catch(() => 'Error');
   };
 
   const handleShowMoveList = (show: boolean) => {
     setShowMovieList(show);
   };
 
-  const fistSearchFilm = movies[0];
-
-  const handlehaveOnTheList = () =>
-    setHaveOnTheList(movielist.some(m => m.imdbId === fistSearchFilm?.imdbId));
   const handleErrorMessage = () => setIsLoading(movies.some(m => m.title));
 
   const handleAddToList = () => {
@@ -72,43 +89,13 @@ export const App = () => {
     setMovie(undefined);
   };
 
-  /* console.log('filteredFilms', filteredFilms)
-  console.log('movies', movies)
-  console.log('movie', movie)
-  console.log('movielist', movielist)
-  console.log('haveOnTheList', haveOnTheList)
-  console.log('fistSearchFilm', fistSearchFilm)
-  console.log('isloadin', isLoading) */
-
-  useEffect(() => {
-    if (!query) {
-      return;
-    }
-
-    getMovie(query) // getMovie precisa de query para econtrar o filme
-      .then(result => {
-        // then faz a busca, se o result(que é a busca) for bem sucedida(encontrou o filme) 'true'
-        if (result.Response === 'True') {
-          setIsLoading(true);
-          const foundFilm: Movie = {
-            title: result.Title,
-            description: result.Plot,
-            imdbUrl: `https://www.imdb.com/title/${result.imdbID}`,
-            imgUrl:
-              !result.Poster || result.Poster === 'N/A'
-                ? `https://via.placeholder.com/360x270.png?text=no%20preview`
-                : result.Poster,
-            imdbId: result.imdbID,
-          }; // atualiza o setMovies com o resultado da busca Search
-
-          setMovies([foundFilm]);
-        } else {
-          setMovies([]);
-        }
-      })
-      .catch(() => 'Error')
-      .finally(() => setShowLoader(false));
-  }, [query]);
+ /* console.log('movies', movies);
+  console.log('movie', movie);
+  console.log('movielist', movielist);
+  console.log('haveOnTheList', haveOnTheList);
+  //console.log('fistSearchFilm', fistSearchFilm)
+  console.log('isloadin', isLoading);
+  console.log('showLoader', showLoader); */
 
   return (
     <MovieContext.Provider

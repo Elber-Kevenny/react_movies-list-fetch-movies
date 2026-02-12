@@ -13,7 +13,6 @@ export const FindMovie: React.FC = () => {
 
   const context = useContext(MovieContext);
   const {
-    movies,
     showLoader,
     onQuery,
     query,
@@ -22,9 +21,7 @@ export const FindMovie: React.FC = () => {
     movie,
     handleShowMoveList,
     handleAddToList,
-    handlehaveOnTheList,
     isLoading,
-    handleErrorMessage,
   } = context;
 
   let disabled = false; // disabled desativa o que for verdadeiro e ativa o que for falso
@@ -38,9 +35,8 @@ export const FindMovie: React.FC = () => {
       <form
         className="find-movie"
         onSubmit={event => {
-          handlehaveOnTheList();
-          handleErrorMessage();
-          handleSubmit(event);
+          event.preventDefault();
+          handleSubmit(query);
           onFiltered(query);
           handleShowMovieCard(true);
         }}
@@ -58,14 +54,13 @@ export const FindMovie: React.FC = () => {
               value={query}
               placeholder="Enter a title to search"
               className={classNames('input', {
-                'is-danger':
-                  movies?.length === 0 && query.length !== 0 && !isLoading,
+                'is-danger': isLoading,
               })}
               onChange={onQuery}
             />
           </div>
 
-          {movies?.length === 0 && query.length !== 0 && !isLoading && (
+          {isLoading && (
             <p className="help is-danger" data-cy="errorMessage">
               Can&apos;t find a movie with such a title
             </p>
